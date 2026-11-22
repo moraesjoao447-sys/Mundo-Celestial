@@ -79,16 +79,15 @@ jobs:
           export/android/debug_keystore_user = "androiddebugkey"
           export/android/debug_keystore_pass = "android"
           EOF
-
       - name: Gerar APK
+        shell: bash
         run: |
           mkdir -p "$PROJ_DIR/build"
-          echo "--- export_presets.cfg ---"
-          cat "$PROJ_DIR/export_presets.cfg"
-          echo "--- tentativa de export ---"
-                    set -o pipefail
-          godot --headless --verbose --path "$PROJ_DIR" --export-debug "Android" "$PWD/$PROJ_DIR/build/MundoCelestial.apk" 2>&1 | tail -80
+          godot --headless --verbose --path "$PROJ_DIR" --export-debug "Android" "$PWD/$PROJ_DIR/build/MundoCelestial.apk" > /tmp/export.log 2>&1 || true
+          echo "--- ultimas linhas do log do Godot ---"
+          tail -80 /tmp/export.log
           ls -la "$PROJ_DIR/build"
+          test -f "$PROJ_DIR/build/MundoCelestial.apk"
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
