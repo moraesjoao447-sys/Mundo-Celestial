@@ -37,7 +37,16 @@ jobs:
       - name: Importar recursos
         run: |
           godot --headless --editor --path "$PROJ_DIR" --quit || true
-
+      - name: Forcar renderizador Mobile
+        shell: bash
+        run: |
+          sed -i '/^renderer\/rendering_method/d' "$PROJ_DIR/project.godot"
+          if grep -q '^\[rendering\]' "$PROJ_DIR/project.godot"; then
+            sed -i '/^\[rendering\]/a renderer/rendering_method="mobile"' "$PROJ_DIR/project.godot"
+          else
+            printf '\n[rendering]\nrenderer/rendering_method="mobile"\n' >> "$PROJ_DIR/project.godot"
+          fi
+          grep -n -A3 '^\[rendering\]' "$PROJ_DIR/project.godot"
       - name: Configurar exportacao Android
         shell: bash
         run: |
