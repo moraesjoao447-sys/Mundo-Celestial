@@ -83,7 +83,13 @@ jobs:
           SDKM=$(find $ANDROID_HOME/cmdline-tools -name sdkmanager | head -1)
           echo "sdkmanager: $SDKM"
           yes | $SDKM --sdk_root=$ANDROID_HOME --licenses > /dev/null || true
-          $SDKM --sdk_root=$ANDROID_HOME "build-tools;33.0.2" "platforms;android-33" || true
+                    echo "--- conteudo do build-tools/33.0.2 ---"
+          ls -la $ANDROID_HOME/build-tools/33.0.2 | head -30
+          ls $ANDROID_HOME/platforms
+          rm -rf $ANDROID_HOME/build-tools/33.0.2
+          $SDKM --sdk_root=$ANDROID_HOME --install "build-tools;33.0.2" "platforms;android-33" "platform-tools"
+          echo "--- depois da reinstalacao ---"
+          ls $ANDROID_HOME/build-tools/33.0.2 | head -30
           ls $ANDROID_HOME/build-tools
           mkdir -p ~/.config/godot
           cat > ~/.config/godot/editor_settings-4.3.tres <<EOF
