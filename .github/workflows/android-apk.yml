@@ -19,8 +19,6 @@ jobs:
         run: |
           mkdir -p extraido
           unzip -o Mundo_Celestial_Projeto.zip -d extraido
-          echo "Conteudo extraido:"
-          find extraido -maxdepth 3 | head -50
 
       - name: Localizar projeto
         run: |
@@ -29,9 +27,7 @@ jobs:
             echo "ERRO: project.godot nao encontrado no zip"
             exit 1
           fi
-          PROJ_DIR=$(dirname "$GODOT_FILE")
-          echo "PROJ_DIR=$PROJ_DIR" >> $GITHUB_ENV
-          echo "Projeto encontrado em: $PROJ_DIR"
+          echo "PROJ_DIR=$(dirname "$GODOT_FILE")" >> $GITHUB_ENV
 
       - name: Importar recursos
         run: |
@@ -61,17 +57,7 @@ jobs:
           package/unique_name="com.mundocelestial.rpg"
           package/name="Mundo Celestial"
           EOF
-      - name: Diagnostico
-        run: |
-          echo "JAVA_HOME=$JAVA_HOME"
-          which java javac keytool || true
-          readlink -f "$(which javac)" || true
-          echo "ANDROID_HOME=$ANDROID_HOME ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          ls /usr/lib/android-sdk 2>&1 | head
-          ls /root/android-sdk 2>&1 | head
-          ls /opt 2>&1 | head
-          find / -maxdepth 4 -name "build-tools" -type d 2>/dev/null | head
-      
+
       - name: Preparar ambiente Android
         run: |
           export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
@@ -82,7 +68,6 @@ jobs:
           SDKM=$(find $ANDROID_HOME/cmdline-tools -name sdkmanager | head -1)
           yes | $SDKM --sdk_root=$ANDROID_HOME --licenses > /dev/null || true
           $SDKM --sdk_root=$ANDROID_HOME --install "build-tools;34.0.0" "platforms;android-34" "platform-tools"
-          ls $ANDROID_HOME/build-tools
           mkdir -p ~/.config/godot
           cat > ~/.config/godot/editor_settings-4.3.tres <<EOF
           [gd_resource type="EditorSettings" format=3]
@@ -95,7 +80,7 @@ jobs:
           export/android/debug_keystore_pass = "android"
           EOF
 
-            - name: Gerar APK
+      - name: Gerar APK
         run: |
           mkdir -p "$PROJ_DIR/build"
           echo "--- export_presets.cfg ---"
@@ -103,6 +88,7 @@ jobs:
           echo "--- tentativa de export ---"
           godot --headless --verbose --path "$PROJ_DIR" --export-debug "Android" "$PWD/$PROJ_DIR/build/MundoCelestial.apk" 2>&1 | tail -60
           ls -la "$PROJ_DIR/build"
+
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
