@@ -1,4 +1,3 @@
-
 name: Compilar Mundo Celestial
 
 on:
@@ -18,17 +17,29 @@ jobs:
 
       - name: Extrair projeto
         run: |
-          mkdir -p project
-          unzip -o Mundo_Celestial_Projeto.zip -d project
+          mkdir -p extraido
+          unzip -o Mundo_Celestial_Projeto.zip -d extraido
+          echo "Conteudo extraido:"
+          find extraido -maxdepth 3 | head -50
 
-      - name: Verificar projeto
+      - name: Localizar projeto
         run: |
-          test -f project/project.godot
-          godot --headless --editor --path project --quit
+          GODOT_FILE=$(find extraido -name project.godot | head -1)
+          if [ -z "$GODOT_FILE" ]; then
+            echo "ERRO: project.godot nao encontrado no zip"
+            exit 1
+          fi
+          PROJ_DIR=$(dirname "$GODOT_FILE")
+          echo "PROJ_DIR=$PROJ_DIR" >> $GITHUB_ENV
+          echo "Projeto encontrado em: $PROJ_DIR"
 
-      - name: Configurar exportação Android
+      - name: Importar recursos
         run: |
-          cat > project/export_presets.cfg <<'EOF'
+          godot --headless --editor --path "$PROJ_DIR" --quit || true
+
+      - name: Configurar exportacao Android
+        run: |
+          cat > "$PROJ_DIR/export_presets.cfg" <<'EOF'
           [preset.0]
           name="Android"
           platform="Android"
@@ -53,15 +64,13 @@ jobs:
 
       - name: Gerar APK
         run: |
-          mkdir -p project/build
-          godot --headless --path project \
-            --export-debug "Android" \
-            project/build/MundoCelestial.apk
+          mkdir -p "$PROJ_DIR/build"
+          godot --headless --path "$PROJ_DIR" --export-debug "Android" build/MundoCelestial.apk
+          ls -la "$PROJ_DIR/build"
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
           name: Mundo-Celestial-APK
-          path: project/build/MundoCelestial.apk
+          path: ${{ env.PROJ_DIR }}/build/MundoCelestial.apk
           if-no-files-found: error
-          
