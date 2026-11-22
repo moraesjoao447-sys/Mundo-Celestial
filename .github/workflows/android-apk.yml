@@ -62,12 +62,31 @@ jobs:
           package/name="Mundo Celestial"
           EOF
 
+      - name: Preparar ambiente Android
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates
+          cp -r /root/.local/share/godot/export_templates/4.3.stable ~/.local/share/godot/export_templates/ || true
+          ls ~/.local/share/godot/export_templates/4.3.stable | head
+          keytool -genkey -v -keystore /tmp/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          mkdir -p ~/.config/godot
+          cat > ~/.config/godot/editor_settings-4.3.tres <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "/usr/lib/android-sdk"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/debug_keystore = "/tmp/debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
+          echo "JAVA_HOME=$JAVA_HOME"
+          ls /usr/lib/android-sdk || true
+
       - name: Gerar APK
         run: |
           mkdir -p "$PROJ_DIR/build"
           godot --headless --path "$PROJ_DIR" --export-debug "Android" build/MundoCelestial.apk
           ls -la "$PROJ_DIR/build"
-
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
