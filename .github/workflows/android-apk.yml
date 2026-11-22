@@ -29,11 +29,16 @@ jobs:
           fi
           echo "PROJ_DIR=$(dirname "$GODOT_FILE")" >> $GITHUB_ENV
 
+      - name: Mostrar renderizador do projeto
+        run: |
+          grep -n -i -A6 "\[rendering\]" "$PROJ_DIR/project.godot" || echo "sem secao rendering"
+          grep -n "config/features" "$PROJ_DIR/project.godot" || true
+
       - name: Importar recursos
         run: |
           godot --headless --editor --path "$PROJ_DIR" --quit || true
 
-            - name: Configurar exportacao Android
+      - name: Configurar exportacao Android
         shell: bash
         run: |
           cat > "$PROJ_DIR/export_presets.cfg" <<'EOF'
@@ -86,6 +91,7 @@ jobs:
           EOF
 
       - name: Preparar ambiente Android
+        shell: bash
         run: |
           export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
           export ANDROID_HOME=/usr/lib/android-sdk
@@ -106,13 +112,14 @@ jobs:
           export/android/debug_keystore_user = "androiddebugkey"
           export/android/debug_keystore_pass = "android"
           EOF
+
       - name: Gerar APK
         shell: bash
         run: |
           mkdir -p "$PROJ_DIR/build"
           godot --headless --verbose --path "$PROJ_DIR" --export-debug "Android" "$PWD/$PROJ_DIR/build/MundoCelestial.apk" > /tmp/export.log 2>&1 || true
-          echo "--- ultimas linhas do log do Godot ---"
-          tail -80 /tmp/export.log
+          echo "--- erros do log do Godot ---"
+          grep -n -i -B2 -A8 "error\|invalid\|missing" /tmp/export.log | head -80
           ls -la "$PROJ_DIR/build"
           test -f "$PROJ_DIR/build/MundoCelestial.apk"
 
