@@ -120,7 +120,20 @@ jobs:
           export/android/debug_keystore_user = "androiddebugkey"
           export/android/debug_keystore_pass = "android"
           EOF
-
+      - name: Ajustes Android
+        shell: bash
+        run: |
+          export ANDROID_HOME=/usr/lib/android-sdk
+          if [ ! -e $ANDROID_HOME/cmdline-tools/latest ]; then
+            ln -s $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+          fi
+          ls $ANDROID_HOME/cmdline-tools
+          if grep -q '^\[rendering\]' "$PROJ_DIR/project.godot"; then
+            sed -i '/^\[rendering\]/a textures/vram_compression/import_etc2_astc=true' "$PROJ_DIR/project.godot"
+          else
+            printf '\n[rendering]\ntextures/vram_compression/import_etc2_astc=true\n' >> "$PROJ_DIR/project.godot"
+          fi
+          grep -n -A3 '^\[rendering\]' "$PROJ_DIR/project.godot"
       - name: Gerar APK
         shell: bash
         run: |
