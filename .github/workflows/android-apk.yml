@@ -73,23 +73,30 @@ jobs:
           find / -maxdepth 4 -name "build-tools" -type d 2>/dev/null | head
       - name: Preparar ambiente Android
         run: |
+          export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+          export ANDROID_HOME=/usr/lib/android-sdk
           mkdir -p ~/.local/share/godot/export_templates
           cp -r /root/.local/share/godot/export_templates/4.3.stable ~/.local/share/godot/export_templates/ || true
-          ls ~/.local/share/godot/export_templates/4.3.stable | head
           keytool -genkey -v -keystore /tmp/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          echo "Build-tools instalados:"
+          ls $ANDROID_HOME/build-tools
+          SDKM=$(find $ANDROID_HOME/cmdline-tools -name sdkmanager | head -1)
+          echo "sdkmanager: $SDKM"
+          yes | $SDKM --sdk_root=$ANDROID_HOME --licenses > /dev/null || true
+          $SDKM --sdk_root=$ANDROID_HOME "build-tools;33.0.2" "platforms;android-33" || true
+          ls $ANDROID_HOME/build-tools
           mkdir -p ~/.config/godot
           cat > ~/.config/godot/editor_settings-4.3.tres <<EOF
           [gd_resource type="EditorSettings" format=3]
 
           [resource]
-          export/android/android_sdk_path = "/usr/lib/android-sdk"
+          export/android/android_sdk_path = "$ANDROID_HOME"
           export/android/java_sdk_path = "$JAVA_HOME"
           export/android/debug_keystore = "/tmp/debug.keystore"
           export/android/debug_keystore_user = "androiddebugkey"
           export/android/debug_keystore_pass = "android"
           EOF
-          echo "JAVA_HOME=$JAVA_HOME"
-          ls /usr/lib/android-sdk || true
+          cat ~/.config/godot/editor_settings-4.3.tres
 
       - name: Gerar APK
         run: |
