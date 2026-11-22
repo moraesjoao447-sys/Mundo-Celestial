@@ -61,7 +61,16 @@ jobs:
           package/unique_name="com.mundocelestial.rpg"
           package/name="Mundo Celestial"
           EOF
-
+      - name: Diagnostico
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME"
+          which java javac keytool || true
+          readlink -f "$(which javac)" || true
+          echo "ANDROID_HOME=$ANDROID_HOME ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          ls /usr/lib/android-sdk 2>&1 | head
+          ls /root/android-sdk 2>&1 | head
+          ls /opt 2>&1 | head
+          find / -maxdepth 4 -name "build-tools" -type d 2>/dev/null | head
       - name: Preparar ambiente Android
         run: |
           mkdir -p ~/.local/share/godot/export_templates
