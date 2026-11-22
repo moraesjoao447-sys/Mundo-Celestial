@@ -86,8 +86,8 @@ jobs:
                     echo "--- conteudo do build-tools/33.0.2 ---"
           ls -la $ANDROID_HOME/build-tools/33.0.2 | head -30
           ls $ANDROID_HOME/platforms
-          rm -rf $ANDROID_HOME/build-tools/33.0.2
-          $SDKM --sdk_root=$ANDROID_HOME --install "build-tools;33.0.2" "platforms;android-33" "platform-tools"
+          
+                     $SDKM --sdk_root=$ANDROID_HOME --install "build-tools;34.0.0" "platforms;android-34" "platform-tools" "cmake;3.10.2.4988404""build-tools;33.0.2" "platforms;android-33" "platform-tools"
           echo "--- depois da reinstalacao ---"
           ls $ANDROID_HOME/build-tools/33.0.2 | head -30
           ls $ANDROID_HOME/build-tools
