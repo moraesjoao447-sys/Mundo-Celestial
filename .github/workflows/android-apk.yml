@@ -1,0 +1,67 @@
+
+name: Compilar Mundo Celestial
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3.0
+
+    steps:
+      - name: Baixar arquivos
+        uses: actions/checkout@v4
+
+      - name: Extrair projeto
+        run: |
+          mkdir -p project
+          unzip -o Mundo_Celestial_Projeto.zip -d project
+
+      - name: Verificar projeto
+        run: |
+          test -f project/project.godot
+          godot --headless --editor --path project --quit
+
+      - name: Configurar exportação Android
+        run: |
+          cat > project/export_presets.cfg <<'EOF'
+          [preset.0]
+          name="Android"
+          platform="Android"
+          runnable=true
+          dedicated_server=false
+          export_filter="all_resources"
+          include_filter=""
+          exclude_filter=""
+          export_path="build/MundoCelestial.apk"
+
+          [preset.0.options]
+          custom_template/debug=""
+          custom_template/release=""
+          gradle_build/use_gradle_build=false
+          architectures/armeabi-v7a=false
+          architectures/arm64-v8a=true
+          version/code=1
+          version/name="1.0"
+          package/unique_name="com.mundocelestial.rpg"
+          package/name="Mundo Celestial"
+          EOF
+
+      - name: Gerar APK
+        run: |
+          mkdir -p project/build
+          godot --headless --path project \
+            --export-debug "Android" \
+            project/build/MundoCelestial.apk
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mundo-Celestial-APK
+          path: project/build/MundoCelestial.apk
+          if-no-files-found: error
+          
